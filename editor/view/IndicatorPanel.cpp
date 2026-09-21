@@ -84,13 +84,13 @@ LRESULT IndicatorPanel::OnNCCalcSize(HWND hwnd, UINT message, WPARAM wParam, LPA
 		int vScrollWidth = GetSystemMetrics(SM_CXHTHUMB);
 
 		m_PanelRect = ncp->rgrc[0];
-		
+
 		GetWindowRect(m_View->m_Handle, &m_PanelRect_absolute);
 
-		m_PanelRect.bottom -= (m_PanelRect.top + borderWidth); 
+		m_PanelRect.bottom -= (m_PanelRect.top + borderWidth);
 		m_PanelRect.top = borderWidth - 2;
 
-		m_PanelRect.right -= (m_PanelRect.left + borderWidth); 
+		m_PanelRect.right -= (m_PanelRect.left + borderWidth);
 		m_PanelRect.left = m_PanelRect.right - m_PanelWidth - borderWidth;
 
 		ncp->rgrc[0].right -= (m_PanelWidth + borderWidth);
@@ -146,7 +146,7 @@ LRESULT IndicatorPanel::OnNCPaint(HWND hwnd, UINT message, WPARAM wParam, LPARAM
 	int res;
 
 	if (vscroll && hscroll){
-		// fill small rectangle under vertical scrollbar and panel with 
+		// fill small rectangle under vertical scrollbar and panel with
 		// frame color
 		HRGN combinedRG	= CreateRectRgnIndirect(&m_UnderScroll);
 		HRGN underRG	= CreateRectRgnIndirect(&m_UnderScroll);
@@ -199,7 +199,7 @@ void IndicatorPanel::ClearIndicators(int begin, int end){
 	}
 }
 
-void IndicatorPanel::GetIndicatorLines(int begin, int end){ 
+void IndicatorPanel::GetIndicatorLines(int begin, int end){
 
 	ClearIndicators(-1, -1);
 
@@ -208,7 +208,7 @@ void IndicatorPanel::GetIndicatorLines(int begin, int end){
 
 	if (end < 0)
 		end = m_View->sci(SCI_GETLENGTH, 0, 0);
-	
+
 	DWORD	mask = 0;
 
 	int line = m_View->sci(SCI_LINEFROMPOSITION, begin, 0);
@@ -218,7 +218,7 @@ void IndicatorPanel::GetIndicatorLines(int begin, int end){
 
 		// move indicator mask for line into the list of masks
 		// if end of line or end of file
-		if (lineende <= p || p == end-1){ // new line 
+		if (lineende <= p || p == end-1){ // new line
 
 			// dont save empty masks
 			if (mask){ // save mask from last line
@@ -236,7 +236,7 @@ void IndicatorPanel::GetIndicatorLines(int begin, int end){
 			mask = 0;
 		}
 		//
-		DWORD tmp = m_View->sci(SCI_INDICATORALLONFOR, p, 0); 	
+		DWORD tmp = m_View->sci(SCI_INDICATORALLONFOR, p, 0);
 		mask = mask | tmp;
 	}
 
@@ -268,9 +268,9 @@ void IndicatorPanel::GetIndicatorPixels(){
 			int linesOnPage = (m_PanelRect.bottom - m_PanelRect.top) / lineHeight;
 
 			// maximum pixel per line on panel line height
-			float pixelPerLineOnPanel = (linesOnPage > visibleLines)? lineHeight : (float)m_PixelIndicatorsLen / visibleLines; 
+			float pixelPerLineOnPanel = (linesOnPage > visibleLines)? lineHeight : (float)m_PixelIndicatorsLen / visibleLines;
 
-			float pixelPerPageOnPanel = ((linesOnPage > visibleLines)?  visibleLines : (float)linesOnPage) * pixelPerLineOnPanel; 
+			float pixelPerPageOnPanel = ((linesOnPage > visibleLines)?  visibleLines : (float)linesOnPage) * pixelPerLineOnPanel;
 
 
 			pixelIndicators = new DWORD[m_PixelIndicatorsLen];
@@ -281,8 +281,8 @@ void IndicatorPanel::GetIndicatorPixels(){
 			for(int l=0, c=m_Indicators.size(); l < c; l++){
 				LineMask& lm = m_Indicators[l];
 				int y = (int)(pixelPerLineOnPanel * (float)(lm.line));
-				
-				if (y >= m_PixelIndicatorsLen){ 
+
+				if (y >= m_PixelIndicatorsLen){
 					// error! view go to switch current buffer
 					// we can break here, it will be updated after switching
 					break;
@@ -294,12 +294,12 @@ void IndicatorPanel::GetIndicatorPixels(){
 			// distribute mask to other pixels if possible
 			for(int l=0; l < m_PixelIndicatorsLen; l++){
 				DWORD pi = pixelIndicators[l];
-				
+
 				int next = l+1;
 				DWORD indicator = 0x1;
 				// if pi contains bits and next pixel does not have bits
 				while(pi && next < m_PixelIndicatorsLen && !pixelIndicators[next]){
-					
+
 					// seek to next present indicator
 					while(!(pi & indicator)){
 						indicator = indicator << 1;
@@ -307,8 +307,8 @@ void IndicatorPanel::GetIndicatorPixels(){
 
 					// substract indicator from pi
 					pi = pi & ~indicator;
-					
-					// set indicator at the current position and 
+
+					// set indicator at the current position and
 					// move other indicators to the next pixel
 					pixelIndicators[l] = indicator;
 					pixelIndicators[next] = pi;
@@ -441,7 +441,7 @@ void IndicatorPanel::paintIndicators(){
 }
 
 void IndicatorPanel::paintIndicators(HDC hdc){
-	
+
 	if ( m_Disabled)
 		return;
 
@@ -473,7 +473,7 @@ void IndicatorPanel::paintIndicators(HDC hdc){
 
 	y = linenum * m_draw_height / (long)m_virtual_totallines + m_topOffset;
 
-	t = { x, y, x + panelWidth, y + (g_indicator_height / 2) };
+	t = { x, y, x + panelWidth, y + (g_indicator_height / 2) + 1};
 	FillRect(hdc, &t, brush);
 
 	DeleteObject(brush);
@@ -557,11 +557,11 @@ bool IndicatorPanel::fileModified(int pos)
 		//s.Format(_T("file modified, indicator num=%d\n"), linenum * m_draw_height / (totallines * g_indicator_height));
 		//::OutputDebugString(s);
 
-		//if line got deleted, need to update the line number in m_map_modified_linenum 
+		//if line got deleted, need to update the line number in m_map_modified_linenum
 		if (m_totallines > totallines)
 		{
 			int changednum = m_totallines - totallines;
-			
+
 			if(changednum)
 			{
 				std::set<int>::iterator& it_linenum = std::lower_bound(g_map_modified_linenum[m_current_bufferid].begin(), g_map_modified_linenum[m_current_bufferid].end(), linenum + 1);
@@ -591,7 +591,7 @@ bool IndicatorPanel::fileModified(int pos)
 		{
 			//::OutputDebugString(_T("line added\n"));
 			size_t changed = totallines - m_totallines;
-			
+
 			if(changed)
 			{
 				std::set<int>::iterator& it_linenum = g_map_modified_linenum[m_current_bufferid].end();
