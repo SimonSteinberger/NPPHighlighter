@@ -16,6 +16,7 @@
 //Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #include "PluginDefinition.h"
 #include "common\statics.h"
+#include "editor\Editor.h"
 
 //
 // The plugin data that Notepad++ needs
