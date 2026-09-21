@@ -127,11 +127,12 @@ LRESULT IndicatorPanel::OnNCPaint(HWND hwnd, UINT message, WPARAM wParam, LPARAM
 	HDC hdc = GetWindowDC(hwnd);
 
 	if (vscroll){
-		// Sample a pixel a bit below the top scroll arrow, inside the real
-		// scrollbar's track - that is where the real, currently drawn
-		// scrollbar background color now sits, immediately left of our panel.
-		int sampleX = m_PanelRect.left - (vscrollWidth / 2);
-		int sampleY = m_PanelRect.top + vscrollArrowHeight + 3;
+		// Sample a pixel near a corner of the up-arrow button itself (not
+		// the track below it). The thumb can never overlap the arrow
+		// button, and a corner avoids the arrow glyph in its center - so
+		// this always hits the real, plain scrollbar background color.
+		int sampleX = m_PanelRect.left - vscrollWidth + 2;
+		int sampleY = m_PanelRect.top + 2;
 
 		COLORREF sampled = GetPixel(hdc, sampleX, sampleY);
 		if (sampled != CLR_INVALID)
@@ -763,6 +764,13 @@ bool IndicatorPanel::fileDoubleClicked()
 
 	::SendMessage(nppData._nppHandle, NPPM_MENUCOMMAND, 0, (LPARAM)43030);    //NPP MENU CMD: SEARCH_MARKALLEXT5
 
+	// Force an immediate, synchronous rescan of all indicator hits instead of
+	// waiting for the async idle-hook / SC_MOD_CHANGEINDICATOR notification
+	// path, which can lag until some unrelated event (scroll, tab switch,
+	// manual style-highlight) happens to trigger a rescan.
+	GetIndicatorLines(-1, -1);
+	RedrawIndicatorPanel();
+
 	return true;
 }
 
@@ -772,6 +780,9 @@ bool IndicatorPanel::fileSingleClicked()
 
 	::SendMessage(nppData._nppHandle, NPPM_MENUCOMMAND, 0, (LPARAM)43031);    //NPP MENU CMD: SEARCH_UNMARKALLEXT5
 
+	// Same reasoning as in fileDoubleClicked(): rescan synchronously so no
+	// stale markers linger until some unrelated event triggers a refresh.
+	GetIndicatorLines(-1, -1);
 	RedrawIndicatorPanel();
 
 	return true;
