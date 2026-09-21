@@ -47,6 +47,6 @@ jobs:
       - name: Fertige DLL als Download-Artefakt hochladen
         uses: actions/upload-artifact@v4
         with:
-          name: Npp-Highlighter-${{ matrix.platform }}
-          path: Release/${{ matrix.platform }}/Npp-Highlighter.dll
+          name: NppHighlighter-${{ matrix.platform }}
+          path: Release/${{ matrix.platform }}/NppHighlighter.dll
           if-no-files-found: error
