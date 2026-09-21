@@ -49,12 +49,12 @@ BEGIN
         BLOCK "040904b0"
         BEGIN
             VALUE "CompanyName", "Michael Zhang"
-            VALUE "FileDescription", "Npp-Highlighter Plugin for Notepad++"
+            VALUE "FileDescription", "NppHighlighter Plugin for Notepad++"
             VALUE "FileVersion", "1.0.0.1"
-            VALUE "InternalName", "Npp-Highlighter.dll"
+            VALUE "InternalName", "NppHighlighter.dll"
             VALUE "LegalCopyright", "Copyleft 2022 by Michael Zhang"
-            VALUE "OriginalFilename", "Npp-Highlighter.dll"
-            VALUE "ProductName", "Npp-Highlighter"
+            VALUE "OriginalFilename", "NppHighlighter.dll"
+            VALUE "ProductName", "NppHighlighter"
             VALUE "ProductVersion", "1.0.0.1"
         END
     END
