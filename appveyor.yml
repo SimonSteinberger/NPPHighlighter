@@ -1,0 +1,77 @@
+version: 2.2.185.{build}
+image: Visual Studio 2017
+
+
+environment:
+  matrix:
+  - PlatformToolset: v140_xp
+  - PlatformToolset: v141_xp
+
+platform:
+    - x64
+    - Win32
+
+configuration:
+    - Release
+    - Debug
+
+install:
+    - if "%platform%"=="x64" set archi=amd64
+    - if "%platform%"=="x64" set platform_input=x64
+
+    - if "%platform%"=="Win32" set archi=x86
+    - if "%platform%"=="Win32" set platform_input=x86
+
+    - if "%PlatformToolset%"=="v140_xp" call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" %archi%
+    - if "%PlatformToolset%"=="v141_xp" call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvarsall.bat" %archi%
+
+build_script:
+    - cd "%APPVEYOR_BUILD_FOLDER%"
+    - msbuild jN.vcxproj /p:configuration="%configuration%" /p:platform="%platform_input%" /p:PlatformToolset="%PlatformToolset%" /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
+
+after_build:
+    - cd "%APPVEYOR_BUILD_FOLDER%"
+    - ps: >-
+
+        if ($env:PLATFORM_INPUT -eq "x64") {
+            Push-AppveyorArtifact "$env:PLATFORM\$env:CONFIGURATION\jN.dll" -FileName jN.dll
+        }
+
+        if ($env:PLATFORM_INPUT -eq "x86" ) {
+            Push-AppveyorArtifact "$env:CONFIGURATION\jN.dll" -FileName jN.dll
+        }
+
+        if ($($env:APPVEYOR_REPO_TAG) -eq "true" -and $env:CONFIGURATION -eq "Release" -and $env:PLATFORMTOOLSET -eq "v140_xp") {
+            $ZipFileName = "jN_$($env:APPVEYOR_REPO_TAG_NAME)_$($env:PLATFORM_INPUT).zip"
+            $JnDllPath = ""
+
+            if($env:PLATFORM_INPUT -eq "x64"){
+               $JnDllPath = "$env:PLATFORM\$env:CONFIGURATION\*.dll"
+            }
+            if($env:PLATFORM_INPUT -eq "x86"){
+                $JnDllPath = "$env:CONFIGURATION\*.dll"
+            }
+            if($ZipFileName -ne ""){
+                $ZipFileName = "..\" + $ZipFileName
+                copy $JnDllPath ".\deploy\"
+                cd .\deploy
+                7z a $ZipFileName *
+            }
+        }
+
+artifacts:
+  - path: jN_*.zip
+    name: releases
+
+deploy:
+    provider: GitHub
+    auth_token:
+        secure: EHciC6DIkOPXC2qWw4tnn7Q95AeBqXun6w4YVjFm0GZ1PLVZAzpUh85N50eCnNtC
+    artifact: releases
+    draft: false
+    prerelease: false
+    force_update: true
+    on:
+        appveyor_repo_tag: true
+        PlatformToolset: v140_xp
+        configuration: Release

@@ -1,0 +1,30 @@
+name: Build Npp-Highlighter (cloud, no local install needed)
+
+on:
+  workflow_dispatch:      # manueller "Run workflow"-Button in der Actions-Oberfläche
+  push:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: windows-2022   # GitHub-Runner mit vorinstalliertem VS 2022 Build Tools + Windows SDK + ATL
+    strategy:
+      matrix:
+        platform: [x64, Win32]
+
+    steps:
+      - name: Code auschecken
+        uses: actions/checkout@v4
+
+      - name: MSBuild bereitstellen
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Projekt bauen (Release)
+        run: msbuild jN.vcxproj /p:Configuration=Release /p:Platform=${{ matrix.platform }} /p:PlatformToolset=v142
+
+      - name: Fertige DLL als Download-Artefakt hochladen
+        uses: actions/upload-artifact@v4
+        with:
+          name: Npp-Highlighter-${{ matrix.platform }}
+          path: Release/${{ matrix.platform }}/Npp-Highlighter.dll
+          if-no-files-found: error
