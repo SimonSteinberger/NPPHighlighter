@@ -24,7 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #pragma warning (disable : 4355)
 
 COLORREF g_color_change = RGB(255, 128, 0);
-COLORREF g_color_current_line = RGB(0, 0, 255);
+COLORREF g_color_current_line = RGB(255, 255, 255);
 COLORREF g_color_search = RGB(212, 157, 6);
 COLORREF g_color_panel_bg = RGB(0x17, 0x17, 0x17); // #171717 - indicator panel background
 long g_indicator_width  = 5;
@@ -110,22 +110,39 @@ LRESULT IndicatorPanel::OnNCPaint(HWND hwnd, UINT message, WPARAM wParam, LPARAM
 	if (m_Disabled)
 		return m_View->CallOldWndProc(message,wParam,lParam);
 
+	// Let Windows draw its own border + the REAL scrollbar first. Only after
+	// that has happened can we sample its actual, currently active color
+	// (this is theme/dark-mode aware, since there is no simple GetSysColor()
+	// equivalent for modern themed/dark-mode scrollbars).
+	LRESULT defResult = m_View->CallOldWndProc(message,wParam,lParam);
+
 	int borderWidth		= GetSystemMetrics(SM_CXFOCUSBORDER);
 	int hscrollHeight		= GetSystemMetrics(SM_CYHSCROLL);
 	int vscrollArrowHeight	= GetSystemMetrics(SM_CYVSCROLL);
-
-	HDC hdc;
-	HBRUSH hbrPanelBg; 
-	int res;
-
-	hbrPanelBg = CreateSolidBrush(g_color_panel_bg); // #171717 background instead of system 3D-face color
-
-	HRGN prRG = CreateRectRgnIndirect(&m_PanelRect);
-
-	hdc = GetWindowDC(hwnd);
+	int vscrollWidth		= GetSystemMetrics(SM_CXVSCROLL);
 
 	bool vscroll = hasStyle(hwnd, WS_VSCROLL);
 	bool hscroll = hasStyle(hwnd, WS_HSCROLL);
+
+	HDC hdc = GetWindowDC(hwnd);
+
+	if (vscroll){
+		// Sample a pixel a bit below the top scroll arrow, inside the real
+		// scrollbar's track - that is where the real, currently drawn
+		// scrollbar background color now sits, immediately left of our panel.
+		int sampleX = m_PanelRect.left - (vscrollWidth / 2);
+		int sampleY = m_PanelRect.top + vscrollArrowHeight + 3;
+
+		COLORREF sampled = GetPixel(hdc, sampleX, sampleY);
+		if (sampled != CLR_INVALID)
+			g_color_panel_bg = sampled; // used here AND in paintIndicators()
+	}
+
+	HBRUSH hbrPanelBg = CreateSolidBrush(g_color_panel_bg);
+
+	HRGN prRG = CreateRectRgnIndirect(&m_PanelRect);
+
+	int res;
 
 	if (vscroll && hscroll){
 		// fill small rectangle under vertical scrollbar and panel with 
@@ -156,7 +173,7 @@ LRESULT IndicatorPanel::OnNCPaint(HWND hwnd, UINT message, WPARAM wParam, LPARAM
 
 	ReleaseDC(hwnd, hdc);
 
-	return m_View->CallOldWndProc(message,wParam,lParam);
+	return defResult;
 }
 
 void IndicatorPanel::ClearIndicators(int begin, int end){
@@ -448,7 +465,7 @@ void IndicatorPanel::paintIndicators(HDC hdc){
 
 	y = linenum * m_draw_height / (long)m_virtual_totallines + m_topOffset;
 
-	t = { x, y, x + panelWidth, y + 2 };
+	t = { x, y, x + panelWidth, y + g_indicator_height };
 	FillRect(hdc, &t, brush);
 
 	DeleteObject(brush);
