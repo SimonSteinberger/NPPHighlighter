@@ -473,7 +473,7 @@ void IndicatorPanel::paintIndicators(HDC hdc){
 
 	y = linenum * m_draw_height / (long)m_virtual_totallines + m_topOffset;
 
-	t = { x, y, x + panelWidth, y + (g_indicator_height / 2) };
+	t = { x, y, x + panelWidth, y + (g_indicator_height / 2) + 1 };
 	FillRect(hdc, &t, brush);
 
 	DeleteObject(brush);
