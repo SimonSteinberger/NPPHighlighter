@@ -1,4 +1,4 @@
-name: Build Npp-Highlighter (cloud, no local install needed)
+name: Build NppHighlighter (cloud, no local install needed)
 
 on:
   workflow_dispatch:      # manueller "Run workflow"-Button in der Actions-Oberfläche
