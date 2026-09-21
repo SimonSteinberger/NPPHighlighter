@@ -258,6 +258,17 @@ void CEditor::doOnDoubleClick()
 	}
 }
 
+void CEditor::doOnSavePointReached()
+{
+	// document content is back to exactly the last-saved state (this also
+	// covers undoing all changes back to that point) - clear stale "changed
+	// line" markers for the current view accordingly
+	int view = GetCurrentView(); // can be -1 what is not valid
+	if (view >= 0 && view < m_ViewsNumber) {
+		m_Views[view]->m_IndPanel.clearChangedIndicators();
+	}
+}
+
 void CEditor::CallListener(TCHAR* method, int view, int file){
 	if (m_Listener == NULL)
 		return;

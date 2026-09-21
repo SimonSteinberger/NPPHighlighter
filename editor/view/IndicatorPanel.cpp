@@ -456,7 +456,14 @@ void IndicatorPanel::paintIndicators(HDC hdc){
 
 	updateChangedIndicator(hdc);
 
-	HBRUSH brush = CreateSolidBrush(g_color_current_line);
+	// Cursor-line marker: half the height of normal markers, colored as the
+	// inverse of the current panel background (dark panel -> light marker,
+	// light panel -> dark marker), so it stays visible regardless of theme.
+	BYTE bgR = GetRValue(g_color_panel_bg);
+	BYTE bgG = GetGValue(g_color_panel_bg);
+	BYTE bgB = GetBValue(g_color_panel_bg);
+	COLORREF invertedColor = RGB(255 - bgR, 255 - bgG, 255 - bgB);
+	HBRUSH brush = CreateSolidBrush(invertedColor);
 
 	long panelWidth = m_PanelRect.right - m_PanelRect.left; // full panel width, no left margin
 	long x = m_PanelRect.left;
@@ -466,7 +473,7 @@ void IndicatorPanel::paintIndicators(HDC hdc){
 
 	y = linenum * m_draw_height / (long)m_virtual_totallines + m_topOffset;
 
-	t = { x, y, x + panelWidth, y + g_indicator_height };
+	t = { x, y, x + panelWidth, y + (g_indicator_height / 2) };
 	FillRect(hdc, &t, brush);
 
 	DeleteObject(brush);
@@ -792,6 +799,21 @@ bool IndicatorPanel::fileclose()
 {
 	g_map_modified_linenum.erase(m_current_bufferid);
 	return true;
+}
+
+void IndicatorPanel::clearChangedIndicators()
+{
+	// Called when the document is back at its last-saved state (including
+	// after undoing all changes) - our own "changed line" tracking has no
+	// notion of "reverted to original", so without this the orange markers
+	// would otherwise linger forever after an undo.
+	m_current_bufferid = ::SendMessage(nppData._nppHandle, NPPM_GETCURRENTBUFFERID, 0, 0);
+
+	g_map_modified_linenum[m_current_bufferid].clear();
+	g_map_modified_indicator[m_current_bufferid].clear();
+
+	m_linemodified = true;
+	RedrawIndicatorPanel();
 }
 
 //Move scrollbar to double-clicked position

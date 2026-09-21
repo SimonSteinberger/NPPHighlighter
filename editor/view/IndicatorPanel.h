@@ -76,6 +76,7 @@ public:
 	bool fileDoubleClicked();
 	bool fileSingleClicked();
 	bool fileclose();
+	void clearChangedIndicators();
 	void updateSelectedIndicator(HDC hdc);
 	void updateChangedIndicator(HDC hdc);
 	bool movescrollbarto(int x, int y);
