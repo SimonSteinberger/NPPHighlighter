@@ -13,6 +13,8 @@ This is a fork of [michaelxzhang/Npp-Highlighter](https://github.com/michaelxzha
 - **Various bug fixes**, including:
   - Search-hit markers from double-click "smart highlight" not appearing until the user scrolled or manually applied a style highlight.
   - "Changed line" markers staying visible after undoing all changes back to the last saved state.
+ 
+<img width="1186" height="971" alt="screenshot" src="https://github.com/user-attachments/assets/17be3b49-5936-48b3-9b4c-db4edcef6dc9" />
 
 ## Download
 
