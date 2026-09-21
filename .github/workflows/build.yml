@@ -16,6 +16,14 @@ jobs:
       - name: Code auschecken
         uses: actions/checkout@v4
 
+      - name: ATL-Komponente nachinstallieren (fehlt auf dem Runner standardmäßig)
+        shell: powershell
+        run: |
+          $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+          $vsPath = & $vswhere -latest -property installationPath
+          $installer = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vs_installer.exe"
+          Start-Process -FilePath $installer -ArgumentList "modify --installPath `"$vsPath`" --add Microsoft.VisualStudio.Component.VC.ATL --quiet --norestart --wait" -Wait -PassThru
+
       - name: MSBuild bereitstellen
         uses: microsoft/setup-msbuild@v2
 
