@@ -26,9 +26,37 @@ FuncItem funcItem[nbFunc];
 // The data of Notepad++ that you can use in your plugin commands
 //
 static const TCHAR* txtAbout = TEXT("About");
+static const TCHAR* txtEnable = TEXT("Enable NppHighlighter");
 
 class CEditor;
 extern CEditor* g_editor;
+
+bool g_pluginEnabled = true; // plugin starts enabled by default (overridden by loadPluginEnabledState())
+
+static void getConfigIniPath(TCHAR* outPath, int outPathSize){
+	TCHAR dir[MAX_PATH] = {0};
+	::SendMessage(nppData._nppHandle, NPPM_GETPLUGINSCONFIGDIR, MAX_PATH, (LPARAM)dir);
+	wsprintf(outPath, TEXT("%s\\NppHighlighter.ini"), dir);
+}
+
+// Reads the persisted enabled/disabled state from NppHighlighter.ini in the
+// plugin config directory. Called once during commandMenuInit(), i.e.
+// before the editor views (and therefore g_editor) even exist, so the very
+// first menu checkmark and the very first repaint already reflect the
+// correct, previously saved state.
+void loadPluginEnabledState(){
+	TCHAR iniPath[MAX_PATH] = {0};
+	getConfigIniPath(iniPath, MAX_PATH);
+
+	g_pluginEnabled = (GetPrivateProfileInt(TEXT("Settings"), TEXT("Enabled"), 1, iniPath) != 0);
+}
+
+static void savePluginEnabledState(){
+	TCHAR iniPath[MAX_PATH] = {0};
+	getConfigIniPath(iniPath, MAX_PATH);
+
+	WritePrivateProfileString(TEXT("Settings"), TEXT("Enabled"), g_pluginEnabled ? TEXT("1") : TEXT("0"), iniPath);
+}
 
 void about(){
 	/*
@@ -44,7 +72,24 @@ void about(){
 
 	TCHAR buf[1024];
 	int r = LoadString(Statics::instance().hInstance, 1, buf, sizeof(buf));
+
+	lstrcat(buf, TEXT("\n\nThis is a fork by Simon Steinberger."));
+
 	MessageBox(nppData._nppHandle, buf, txtAbout, MB_OK|MB_ICONINFORMATION);
+}
+
+void toggleEnabled(){
+	if (g_editor == NULL)
+		return;
+
+	g_pluginEnabled = !g_pluginEnabled;
+
+	g_editor->setPluginEnabled(g_pluginEnabled);
+
+	savePluginEnabledState();
+
+	// update the checkmark next to the menu entry itself (index 0: "Enable NppHighlighter")
+	::SendMessage(nppData._nppHandle, NPPM_SETMENUITEMCHECK, funcItem[0]._cmdID, (LPARAM)g_pluginEnabled);
 }
 
 //
@@ -92,7 +137,10 @@ void commandMenuInit()
     //            ShortcutKey *shortcut,          // optional. Define a shortcut to trigger this command
     //            bool check0nInit                // optional. Make this menu item be checked visually
     //            );
-    setCommand(0, txtAbout, about, NULL, false);
+    loadPluginEnabledState(); // so the very first checkmark reflects the last saved state
+
+    setCommand(0, txtEnable, toggleEnabled, NULL, g_pluginEnabled);
+    setCommand(1, txtAbout, about, NULL, false);
 }
 
 

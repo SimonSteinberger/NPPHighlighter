@@ -90,6 +90,9 @@ int CEditorView::bytePosToPos(int pos){
 
 void CEditorView::setIndicatorLinesUpdater(int begin, int end){
 
+	if (m_IndPanel.GetDisabled())
+		return; // don't even queue the (potentially expensive, whole-document) rescan
+
 	ForegroundIdleHook::IdleHandler* indicatorPixelsUpdater = &m_IndPanel.m_IndicPixelsUp;
 
 	if (indicatorPixelsUpdater != NULL)

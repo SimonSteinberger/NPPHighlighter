@@ -269,6 +269,18 @@ void CEditor::doOnSavePointReached()
 	}
 }
 
+void CEditor::setPluginEnabled(bool enabled)
+{
+	// applies to both editor views (main and secondary), not just the
+	// currently focused one, since the Plugins menu toggle is a single
+	// global on/off switch for the whole plugin
+	for (int i = 0; i < m_ViewsNumber; i++) {
+		if (m_Views[i] != NULL) {
+			m_Views[i]->m_IndPanel.SetDisabled(!enabled);
+		}
+	}
+}
+
 void CEditor::CallListener(TCHAR* method, int view, int file){
 	if (m_Listener == NULL)
 		return;

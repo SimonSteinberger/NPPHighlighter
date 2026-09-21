@@ -36,7 +36,10 @@ const TCHAR NPP_PLUGIN_NAME[] = TEXT("Npp-Highlighter");
 //
 // Here define the number of your plugin commands
 //
-const int nbFunc = 1;
+const int nbFunc = 2;
+
+extern bool g_pluginEnabled;
+void loadPluginEnabledState();
 
 
 //
