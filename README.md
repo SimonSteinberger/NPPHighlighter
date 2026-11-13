@@ -16,7 +16,7 @@ This is a fork of [michaelxzhang/Npp-Highlighter](https://github.com/michaelxzha
 
 <img width="1186" height="971" alt="screenshot" src="https://github.com/user-attachments/assets/17be3b49-5936-48b3-9b4c-db4edcef6dc9" />
 
-## Download
+## Downloads
 
 Precompiled DLLs from a recent successful build are available under "Releases" of this repository
 
